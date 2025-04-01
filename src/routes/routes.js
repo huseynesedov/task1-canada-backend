@@ -2,12 +2,12 @@
 const express = require("express");
 const router = express.Router();
 
-const product = './product.routes'
-const catalog = './catalog.rotues'
-const search = './search.routes'
+const productRoutes = require("./product.routes");
+const catalogRoutes = require("./catalog.routes");  // Corrected typo
+const searchRoutes = require("./search.routes");
 
-router.post("/product", product);
-router.get("/catalog", catalog);
-router.put("/search", search);
+router.use("/Product", productRoutes);
+router.use("/Catalogs", catalogRoutes);
+router.use("/Search", searchRoutes);
 
 module.exports = router;

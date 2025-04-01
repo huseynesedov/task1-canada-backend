@@ -6,6 +6,12 @@ const connectDB = require("./src/config/mongo.db");
 const swaggerDocument = require("./src/config/swagger.doc.json");
 const rotues = require("./src/routes/routes");
 
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
+app.use(cors());
+app.use(bodyParser.json());
+
 dotenv.config();
 connectDB();
 
