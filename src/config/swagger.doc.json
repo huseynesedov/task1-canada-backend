@@ -1,0 +1,23 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Node Catalog API",
+      "version": "1.0.0",
+      "description": "API documentation for catalog and product management."
+    },
+    "servers": [{ "url": "http://localhost:5000/api" }],
+    "paths": {
+      "/catalogs/title": {
+        "post": { "summary": "Create a new catalog title", "responses": { "201": { "description": "Catalog created" } } },
+        "get": { "summary": "Get all catalog titles", "responses": { "200": { "description": "List of catalogs" } } }
+      },
+      "/products": {
+        "post": { "summary": "Create a new product", "responses": { "201": { "description": "Product created" } } },
+        "get": { "summary": "Get all products", "responses": { "200": { "description": "List of products" } } }
+      },
+      "/search": {
+        "get": { "summary": "Search products", "responses": { "200": { "description": "Search results" } } }
+      }
+    }
+  }
+  
