@@ -18,7 +18,7 @@ exports.createProduct = async (req, res) => {
     const { title, description, location, roomNumber, CatalogBaths, catalogPrice, catalogBed, latitude, longitude } = req.body;
     const product = await Product.findById(req.params.id);
 
-    // Check if product name or room number already exists
+    
     const existingProduct = await Product.findOne({ title });
     if (existingProduct) {
       throw new APIError("This product name already exists!", 409);
