@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
 const catalogBathsSchema = new mongoose.Schema({
-  catalogBathsId: mongoose.Schema.Types.ObjectId,
-  titleAZ: String,
-  titleEN: String,
-  titleRU: String,
+  countTitleAZ: { type: String, required: true },
+  countTitleEN: { type: String, required: true },
+  countTitleRU: { type: String, required: true },
 });
+
 module.exports = mongoose.model("CatalogBaths", catalogBathsSchema);

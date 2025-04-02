@@ -2,32 +2,32 @@ const express = require("express");
 const router = express.Router();
 
 
-const { createCatalogBed, getCatalogBeds, getCatalogBed, updateCatalogBed, deleteCatalogBed } = require("../controllers/catalog.bed.controller");
+const { createCatalogBed, getCatalogBeds, getCatalogByIdBed, updateCatalogBed, deleteCatalogBed } = require("../controllers/catalog.bed.controller");
 
-const { createCatalogPrice, getCatalogPrices, getCatalogPrice, updateCatalogPrice, deleteCatalogPrice } = require("../controllers/catalog.price.controller");
+const { createCatalogPrice, getCatalogPrices, getCatalogByIdPrice, updateCatalogPrice, deleteCatalogPrice } = require("../controllers/catalog.price.controller");
 
-const { createCatalogBaths, getCatalogBathss, getCatalogBaths, updateCatalogBaths, deleteCatalogBaths } = require("../controllers/catalog.baths.controller");
+const { createCatalogBaths, getCatalogBaths, getCatalogByIdBaths, updateCatalogBaths, deleteCatalogBaths } = require("../controllers/catalog.baths.controller");
 
 
 // CatalogBaths işlemleri
-router.post("/CatalogBaths", createCatalogBaths);  // Yeni CatalogBaths oluştur
-router.get("/CatalogBathss", getCatalogBathss);    // Tüm CatalogBaths'ları getir
-router.get("/CatalogBaths/:id", getCatalogBaths); // Belirli bir CatalogBaths getir
-router.put("/CatalogBaths/:id", updateCatalogBaths); // CatalogBaths güncelle
-router.delete("/CatalogBaths/:id", deleteCatalogBaths); // CatalogBaths sil
+router.post("/createCatalogBath", createCatalogBaths);  // Yeni CatalogBaths oluştur
+router.get("/getAllCatalogBaths", getCatalogBaths);    // Tüm CatalogBaths'ları getir
+router.get("/getCatalogBathById/:id", getCatalogByIdBaths); // Belirli bir CatalogBaths getir
+router.put("/uptadeCatalogBath/:id", updateCatalogBaths); // CatalogBaths güncelle
+router.delete("/deleteCatalogBath/:id", deleteCatalogBaths); // CatalogBaths sil
 
 // CatalogPrice işlemleri
-router.post("/catalogPrice", createCatalogPrice);  // Yeni CatalogPrice oluştur
-router.get("/catalogPrices", getCatalogPrices);    // Tüm CatalogPrice'ları getir
-router.get("/catalogPrice/:id", getCatalogPrice); // Belirli bir CatalogPrice getir
-router.put("/catalogPrice/:id", updateCatalogPrice); // CatalogPrice güncelle
-router.delete("/catalogPrice/:id", deleteCatalogPrice); // CatalogPrice sil
+router.post("/createCatalogPrice", createCatalogPrice);  // Yeni CatalogPrice oluştur
+router.get("/getAllCatalogPrices", getCatalogPrices);    // Tüm CatalogPrice'ları getir
+router.get("/getCatalogPriceById/:id", getCatalogByIdPrice); // Belirli bir CatalogPrice getir
+router.put("/updateCatalogPrice/:id", updateCatalogPrice); // CatalogPrice güncelle
+router.delete("/deleteCatalogPrice/:id", deleteCatalogPrice); // CatalogPrice sil
 
 // CatalogBed işlemleri
-router.post("/catalogBed", createCatalogBed);  // Yeni CatalogBed oluştur
-router.get("/catalogBeds", getCatalogBeds);    // Tüm CatalogBed'leri getir
-router.get("/catalogBed/:id", getCatalogBed); // Belirli bir CatalogBed getir
-router.put("/catalogBed/:id", updateCatalogBed); // CatalogBed güncelle
-router.delete("/catalogBed/:id", deleteCatalogBed); // CatalogBed sil
+router.post("/createCatalogBed", createCatalogBed);  // Yeni CatalogBed oluştur
+router.get("/getAllCatalogBeds", getCatalogBeds);    // Tüm CatalogBed'leri getir
+router.get("/getCatalogBedById/:id", getCatalogByIdBed); // Belirli bir CatalogBed getir
+router.put("/uptadeCatalogBed/:id", updateCatalogBed); // CatalogBed güncelle
+router.delete("/deleteCatalogBed/:id", deleteCatalogBed); // CatalogBed sil
 
 module.exports = router;

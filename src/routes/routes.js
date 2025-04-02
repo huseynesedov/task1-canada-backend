@@ -7,7 +7,7 @@ const catalogRoutes = require("./catalog.routes");  // Corrected typo
 const searchRoutes = require("./search.routes");
 
 router.use("/Product", productRoutes);
-router.use("/Catalogs", catalogRoutes);
+router.use("/Catalog", catalogRoutes);
 router.use("/Search", searchRoutes);
 
 module.exports = router;

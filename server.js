@@ -1,25 +1,68 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const swaggerUi = require("swagger-ui-express");
+const swaggerJSDoc = require("swagger-jsdoc");
 const connectDB = require("./src/config/mongo.db");
+const routes = require("./src/routes/routes");
+const cors = require("cors");
+const multer = require("multer");
 
-const swaggerDocument = require("./src/config/swagger.doc.json");
-const rotues = require("./src/routes/routes");
-
-const bodyParser = require('body-parser');
-const cors = require('cors');
-
-app.use(cors());
-app.use(bodyParser.json());
-
+// Load environment variables
 dotenv.config();
-connectDB();
 
 const app = express();
+
+// Middleware for CORS (Cross-Origin Resource Sharing)
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+// Configure Multer for file upload
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// Middleware to parse incoming requests
 app.use(express.json());
-app.use("/swagger/index.html", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use(express.urlencoded({ extended: true }));
 
-app.use("/api", rotues);
+// Swagger setup
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: "3.0.0",
+    info: {
+      title: "My API",
+      version: "1.0.0",
+      description: "My API documentation",
+    },
+    servers: [
+      {
+        url: process.env.BASE_URL || "http://localhost:5000"
+      },
+    ],
+  },
+  apis: ["./src/swagger/*"],
+};
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const swaggerDocs = swaggerJSDoc(swaggerOptions);
+app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+// API Routes
+app.use("/api", routes);
+
+// Start the server
+const startServer = async () => {
+  try {
+    await connectDB();
+    console.log("✅ Connected to MongoDB");
+
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  } catch (error) {
+    console.error("❌ Error connecting to MongoDB:", error);
+    process.exit(1);
+  }
+};
+
+startServer();

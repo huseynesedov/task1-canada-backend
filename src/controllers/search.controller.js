@@ -1,7 +1,7 @@
 const Product = require("../models/product.model");
 const CatalogBed = require("../models/catalogBed.model");
 const CatalogPrice = require("../models/catalogPrice.model");
-const CatalogTitle = require("../models/catalogTitle.model");
+const CatalogBaths = require("../models/catalogBaths.model");
 
 exports.searchProducts = async (req, res) => {
   try {
@@ -16,7 +16,7 @@ exports.searchProducts = async (req, res) => {
         switch (filter.fieldName) {
           case "catalogBedId":
           case "catalogPriceId":
-          case "catalogTitleId":
+          case "catalogBathsId":
             query["catalogs"] = { $in: [filter.value] }; 
             break;
           default:
@@ -33,7 +33,7 @@ exports.searchProducts = async (req, res) => {
     const products = await Product.find(query)
       .skip(skip)
       .limit(limit)
-      .populate("catalogTitle catalogPrice catalogBed"); 
+      .populate("CatalogBaths catalogPrice catalogBed"); 
 
     // Toplam ürün sayısını almak
     const totalProducts = await Product.countDocuments(query);
