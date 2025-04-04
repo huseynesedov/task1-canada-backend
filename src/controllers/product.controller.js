@@ -1,97 +1,97 @@
 const Product = require("../models/product.model");
-const { uploadToCloudinary, deleteFromCloudinary } = require('../config/cloudinary.config');
-const APIError = require("../utils/eror.midelware");
+const multer = require("multer");
+const path = require('path'); // path modülünü doğru şekilde dahil edin
+const fs = require('fs');
+const { default: mongoose } = require("mongoose");
 
+
+
+// Dosya yükleme ayarları
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = 'uploads/product';
+
+    // 'uploads' klasörü mevcut değilse oluştur
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+
+    cb(null, uploadPath); // Dosya yükleme hedefi olarak 'uploads' klasörünü belirt
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname); // Dosya uzantısını al
+    const timestamp = Date.now(); // Zaman damgası
+    cb(null, `${timestamp}${ext}`); // Dosya adı zaman damgası ve uzantı ile kaydedilecek
+  }
+});
+
+// Dosya yükleme middleware
+const upload = multer({ storage: storage }).fields([
+  { name: 'mainRoomImg', maxCount: 1 },
+  { name: 'roomImgs', maxCount: 5 }
+]);
+
+
+
+// createProduct fonksiyonu
 exports.createProduct = async (req, res) => {
   try {
-    // Check if form data is present
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({ error: "No form data provided" });
-    }
-
-    // Check if image files are present
-    if (!req.files || !req.files.mainRoomImg || !req.files.roomImgs) {
-      return res.status(400).json({ error: "Image files are missing" });
-    }
-
-    // Extract product details from the request body
-    const { title, description, location, roomNumber, CatalogBaths, catalogPrice, catalogBed, latitude, longitude } = req.body;
-    const product = await Product.findById(req.params.id);
-
-    
-    const existingProduct = await Product.findOne({ title });
-    if (existingProduct) {
-      throw new APIError("This product name already exists!", 409);
-    }
-
-    const existingProductRoom = await Product.findOne({ roomNumber });
-    if (existingProductRoom) {
-      throw new APIError("This room number already exists!", 409);
-    }
-
-    // Handle photo uploads
-    const photoMainFile = req.files?.mainRoomImg;
-    const photosFiles = req.files?.roomImgs;
-
-    let photoMainUrl = null;
-    let photosUrls = [];
-
-    if (photoMainFile) {
-      const uploadedMainPhoto = await uploadToCloudinary(photoMainFile.tempFilePath, {
-        use_filename: true,
-        // folder: "Product/MainPhotos"
-      });
-      photoMainUrl = uploadedMainPhoto.url;
-    }
-
-    if (photosFiles && Array.isArray(photosFiles)) {
-      for (const file of photosFiles) {
-        const uploadedPhoto = await uploadToCloudinary(file.tempFilePath, {
-          use_filename: true,
-          // folder: "Product/AdditionalPhotos"
-        });
-        photosUrls.push(uploadedPhoto.url);
+    upload(req, res, async (err) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
       }
-    } else if (photosFiles) {
-      const uploadedPhoto = await uploadToCloudinary(photosFiles.tempFilePath, {
-        use_filename: true,
-        // folder: "Product/AdditionalPhotos"
+
+      // Dosya kontrolü
+      if (!req.files || !req.files.mainRoomImg || !req.files.roomImgs) {
+        return res.status(400).json({ error: "Image files are missing" });
+      }
+
+      const { title, description, location, roomNumber, CatalogBaths, catalogPrice, catalogBed, latitude, longitude } = req.body;
+
+      // CatalogBaths, catalogPrice, catalogBed değerlerini ObjectId'ye dönüştürme
+      const catalogBathsId = new mongoose.Types.ObjectId(CatalogBaths);
+      const catalogPriceId = new mongoose.Types.ObjectId(catalogPrice);
+      const catalogBedId = new mongoose.Types.ObjectId(catalogBed);
+
+
+      // URL için dinamik URL oluşturma
+      const mainRoomImgUrl = `https://canadabackend.huseyn.online/uploads/product/room/${req.files.mainRoomImg[0].filename}`;
+      const roomImgsUrls = req.files.roomImgs.map(file => `https://canadabackend.huseyn.online/uploads/product/rooms/${file.filename}`);
+
+      // Yeni ürün oluşturma
+      const newProduct = new Product({
+        title,
+        mainRoomImg: mainRoomImgUrl,
+        roomImgs: roomImgsUrls,
+        description,
+        location,
+        roomNumber,
+        CatalogBaths: catalogBathsId,
+        catalogPrice: catalogPriceId,
+        catalogBed: catalogBedId,
+        latitude,
+        longitude,
       });
-      photosUrls.push(uploadedPhoto.url);
-    }
 
-    // Create new product instance
-    const newProduct = new Product({
-      title,
-      mainRoomImg: photoMainUrl, // Main photo URL
-      roomImgs: photosUrls,      // Additional room photo URLs
-      description,
-      location,
-      roomNumber,
-      CatalogBaths,
-      catalogPrice,
-      catalogBed,
-      latitude,
-      longitude,
+      // Ürünü veritabanına kaydetme
+      await newProduct.save();
+
+      // Ürün bilgilerini ve referansları doldur
+      const populatedProduct = await Product.findById(newProduct._id)
+        .populate("CatalogBaths")
+        .populate("catalogPrice")
+        .populate("catalogBed");
+
+      // Başarıyla oluşturulmuş ürünle birlikte yanıt gönder
+      res.status(201).json(populatedProduct);
     });
-
-    // Save the new product to the database
-    await newProduct.save();
-
-    // Populate references and send the response
-    const populatedProduct = await Product.findById(newProduct._id)
-      .populate("CatalogBaths")
-      .populate("catalogPrice")
-      .populate("catalogBed");
-
-    res.status(201).json(populatedProduct);  // Successfully created
   } catch (error) {
-    res.status(400).json({ error: error.message });  // Error response
+    res.status(400).json({ error: error.message });
   }
 };
 
 // Controller to get all products
-exports.getProducts = async (req, res) => {
+exports.getAllProducts = async (req, res) => {
   try {
     const products = await Product.find()
       .populate("CatalogBaths")
@@ -104,41 +104,74 @@ exports.getProducts = async (req, res) => {
   }
 };
 
+exports.getProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // ID'nin geçerli bir ObjectId olup olmadığını kontrol et
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid product ID" });
+    }
+
+    // Ürünü bul ve populate et
+    const product = await Product.findById(id)
+      .populate("CatalogBaths")
+      .populate("catalogPrice")
+      .populate("catalogBed");
+
+    // Ürün bulunamazsa hata dön
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    // Başarılı cevap
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 // Controller to update a product
 exports.updateProduct = async (req, res) => {
   try {
+    // Find the product by ID
     const product = await Product.findById(req.params.id);
+
+    // Check if product exists
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
 
     // Delete old main image if a new one is provided
     if (req.files && req.files.mainRoomImg) {
-      await deleteFromCloudinary(product.mainRoomImg);
-      const newMainRoomImgUrl = await uploadToCloudinary(req.files.mainRoomImg[0].buffer);
+      await deleteFromCloudinary(product.mainRoomImg); // Function to delete from cloud storage
+      const newMainRoomImgUrl = `http://localhost:5000/uploads/room/${req.files.mainRoomImg[0].filename}`;
       product.mainRoomImg = newMainRoomImgUrl;
     }
 
     // Delete old room images if new ones are provided
     if (req.files && req.files.roomImgs) {
+      // Delete old images
       for (const oldImgUrl of product.roomImgs) {
-        await deleteFromCloudinary(oldImgUrl);
+        await deleteFromCloudinary(oldImgUrl); // Delete from cloud
       }
 
-      const roomImgsUrls = await Promise.all(
-        req.files.roomImgs.map(async (img) => await uploadToCloudinary(img.buffer))
-      );
+      const roomImgsUrls = req.files.roomImgs.map(file => `http://localhost:5000/uploads/rooms/${file.filename}`);
       product.roomImgs = roomImgsUrls;
     }
 
-    // Update other fields
+    // Update other fields from the request body
     const { title, description, location, roomNumber, CatalogBaths, catalogPrice, catalogBed, latitude, longitude } = req.body;
-    product.title = title;
-    product.description = description;
-    product.location = location;
-    product.roomNumber = roomNumber;
-    product.CatalogBaths = CatalogBaths;
-    product.catalogPrice = catalogPrice;
-    product.catalogBed = catalogBed;
-    product.latitude = latitude;
-    product.longitude = longitude;
+    product.title = title || product.title;
+    product.description = description || product.description;
+    product.location = location || product.location;
+    product.roomNumber = roomNumber || product.roomNumber;
+    product.CatalogBaths = CatalogBaths || product.CatalogBaths;
+    product.catalogPrice = catalogPrice || product.catalogPrice;
+    product.catalogBed = catalogBed || product.catalogBed;
+    product.latitude = latitude || product.latitude;
+    product.longitude = longitude || product.longitude;
 
     // Save the updated product
     await product.save();
@@ -158,15 +191,21 @@ exports.updateProduct = async (req, res) => {
 // Controller to delete a product
 exports.deleteProduct = async (req, res) => {
   try {
+    // Find the product by ID
     const product = await Product.findById(req.params.id);
 
-    // Delete main image and room images from Cloudinary
-    await deleteFromCloudinary(product.mainRoomImg);
-    for (const imgUrl of product.roomImgs) {
-      await deleteFromCloudinary(imgUrl);
+    // Check if product exists
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
     }
 
-    // Delete product from database
+    // Delete main image and room images if they exist
+    await deleteFromCloudinary(product.mainRoomImg); // Function to delete from cloud storage
+    for (const imgUrl of product.roomImgs) {
+      await deleteFromCloudinary(imgUrl); // Delete from cloud storage
+    }
+
+    // Delete product from the database
     await Product.findByIdAndDelete(req.params.id);
 
     res.json({ message: "Product and images deleted successfully" });
@@ -174,3 +213,4 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+

@@ -4,28 +4,18 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerJSDoc = require("swagger-jsdoc");
 const connectDB = require("./src/config/mongo.db");
 const routes = require("./src/routes/routes");
-const cors = require("cors");
-const multer = require("multer");
+const path = require('path');
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
 
-// Middleware for CORS (Cross-Origin Resource Sharing)
-app.use(cors({
-  origin: "*", // Allow all origins
-  methods: ["GET", "POST", "PUT", "DELETE"], // Allow specific HTTP methods
-  allowedHeaders: ["Content-Type", "Authorization"], // Allow specific headers
-}));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Configure Multer for file upload (store files in memory temporarily)
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
-
-// Middleware to parse incoming JSON and URL-encoded data
+// JSON ve URL encoded body parser'ları tanımlıyoruz
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 
 // Swagger setup
 const swaggerOptions = {
@@ -42,16 +32,14 @@ const swaggerOptions = {
       },
     ],
   },
-  apis: ["./src/swagger/*"], // Path to your swagger files
+  apis: ["./src/swagger/*"],
 };
 
 const swaggerDocs = swaggerJSDoc(swaggerOptions);
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-// API Routes
 app.use("/api", routes);
 
-// Start the server and connect to the database
 const startServer = async () => {
   try {
     await connectDB();
@@ -67,5 +55,4 @@ const startServer = async () => {
   }
 };
 
-// Initialize the server
 startServer();

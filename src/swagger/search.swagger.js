@@ -1,6 +1,6 @@
 /**
  * @swagger
- * /api/Search/SearchByProducts:
+ * /api/Search/searchByProducts:
  *   post:
  *     summary: Search products with filters and pagination
  *     tags:
@@ -68,4 +68,56 @@
  *                 error:
  *                   type: string
  *                   example: "Error message"
+ */
+
+
+/**
+ * @swagger
+ * /api/Search/searchBySchools:
+ *   post:
+ *     summary: Search schools with filters and pagination
+ *     tags:
+ *       - Search
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               page:
+ *                 type: integer
+ *                 default: 0
+ *               pageSize:
+ *                 type: integer
+ *                 default: 10
+ *               filters:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     fieldName:
+ *                       type: string
+ *                     value:
+ *                       type: string
+ *     responses:
+ *       200:
+ *         description: Search results
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 schools:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/SchoolDto'
+ *                 totalSchools:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 currentPage:
+ *                   type: integer
+ *       500:
+ *         description: Server error
  */

@@ -1,7 +1,9 @@
 const express = require("express");
-
-const { searchProducts } = require("../controllers/search.controller");
+const { searchProducts, searchSchools } = require("../controllers/search.controller");
 
 const router = express.Router();
-router.post("/SearchByProducts", searchProducts);
+
+router.post("/searchByProducts", searchProducts);
+router.post("/searchBySchools", searchSchools);
+
 module.exports = router;
